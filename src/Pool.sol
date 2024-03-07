@@ -43,6 +43,26 @@ function withdraw() external onlyOwner {
         revert CollectNotFinished();
     }
     (bool sent,) = msg.sender.call{value: address(this).balance}("");
+    if(!sent) {
+        revert FailedToSendEther();
+    }
+}
+function refund() external {
+     if(block.timestamp < end) {
+        revert CollectNotFinished();
+    }
+    if(totalCollected >= goal) {
+        revert GoalAlreadyReached();
+    }
+    if(contributions[msg.sender] == 0) {
+        revert NoContribution();
+    }
+   uint256 amount = contributions[msg.sender];
+   contributions[msg.sender] = 0;
+   totalCollected -= amount;
+   (bool sent,) = msg.sender.call{value: amount}("");
+   if(!sent) {
+    revert FailedToSendEther();
+   }
 } 
-
 }
